@@ -53,6 +53,9 @@ export function readWishlist(
 
 export function useWishlist() {
   const wishlist = useState<WishlistedPokemon[]>('wishlist', () => [])
+  const apiError = useState<string | null>('wishlist-api-error', () => null)
+  const config = useRuntimeConfig()
+  const apiBase = config.public.apiBase as string
 
   if (import.meta.client && wishlist.value.length === 0) {
     wishlist.value = readWishlist()
@@ -60,11 +63,44 @@ export function useWishlist() {
 
   const add = (pokemon: WishlistedPokemon) => {
     wishlist.value = addToWishList(pokemon)
+    if (import.meta.client) {
+      void $fetch(`${apiBase}/wishlist`, {
+        method: 'POST',
+        body: pokemon,
+      }).catch(() => {
+        apiError.value = 'Wishlist API unavailable; using LocalStorage.'
+      })
+    }
   }
 
   const remove = (pokemonId: number) => {
     wishlist.value = removeFromWishList(pokemonId)
+    if (import.meta.client) {
+      void $fetch(`${apiBase}/wishlist`, {
+        method: 'DELETE',
+        query: { id: pokemonId },
+      }).catch(() => {
+        apiError.value = 'Wishlist API unavailable; using LocalStorage.'
+      })
+    }
   }
 
-  return { wishlist, addToWishList: add, removeFromWishList: remove }
+  onMounted(async () => {
+    try {
+      const response = await $fetch<{ wishlist: WishlistedPokemon[] }>(
+        `${apiBase}/wishlist`,
+      )
+      wishlist.value = response.wishlist
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(response.wishlist))
+    } catch {
+      apiError.value = 'Wishlist API unavailable; using LocalStorage.'
+    }
+  })
+
+  return {
+    wishlist,
+    apiError,
+    addToWishList: add,
+    removeFromWishList: remove,
+  }
 }

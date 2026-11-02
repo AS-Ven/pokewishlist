@@ -5,8 +5,8 @@ on:
   pull_request:
 
 jobs:
-  add-to-wishlist:
-    name: Test addToWishList
+  ci:
+    name: Test, validate, and build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,125 +21,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Test addToWishList
-        run: npm test -- --run -t addToWishList
-
-  typecheck:
-    name: Check TypeScript types
-    needs: api-failure-handling
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 26
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
+      - name: Run all tests
+        run: npm test -- --run
 
       - name: Check TypeScript types
         run: npm run typecheck
 
-  local-storage:
-    name: Test LocalStorage persistence
-    needs: add-to-wishlist
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 26
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Test LocalStorage persistence
-        run: npm test -- --run -t LocalStorage
-
-  api-failure-handling:
-    name: Test API failure handling
-    needs: local-storage
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 26
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Test mocked fetch failure handling
-        run: npm test -- --run -t loadPokemonDetails
-
-  lint:
-    name: Check lint rules
-    needs: typecheck
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 26
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
       - name: Check lint rules
         run: npm run lint
-
-  format:
-    name: Check code formatting
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 26
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Check code formatting
         run: npm run format:check
 
-  build:
-    name: Build Nuxt application
-    needs: format
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 26
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build application
+      - name: Build Nuxt application
         run: npm run build

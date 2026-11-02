@@ -7,25 +7,30 @@
   },
   "scripts": {
     "postinstall": "nuxt prepare",
+    "backend": "tsx backend/server.ts",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "test": "vitest",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck && tsc -p tsconfig.backend.json"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
+    "@hono/node-server": "^1.19.7",
+    "@types/node": "^22.15.0",
     "@nuxt/test-utils": "^3.19.2",
     "@vue/test-utils": "^2.4.6",
     "eslint": "^9.20.0",
     "eslint-plugin-vue": "^10.0.0",
     "happy-dom": "^17.4.4",
+    "hono": "^4.10.4",
     "nuxt": "^3.17.5",
     "prettier": "^3.5.3",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.24.0",
     "vitest": "^3.1.1",
-    "vue-tsc": "^3.3.14"
+    "vue-tsc": "^3.3.14",
+    "tsx": "^4.20.6"
   }
 }
