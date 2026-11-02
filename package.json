@@ -1,0 +1,17 @@
+{
+  "name": "poke-wishlist",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@nuxt/test-utils": "^3.19.2",
+    "@vue/test-utils": "^2.4.6",
+    "nuxt": "^3.17.5",
+    "vitest": "^3.1.1",
+    "happy-dom": "^17.4.4"
+  }
+}
