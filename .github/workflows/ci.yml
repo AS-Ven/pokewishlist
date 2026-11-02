@@ -22,3 +22,6 @@ jobs:
 
       - name: Test addToWishList
         run: npm test -- --run -t addToWishList
+
+      - name: Check lint rules
+        run: npm run lint

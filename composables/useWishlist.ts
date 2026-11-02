@@ -4,6 +4,7 @@ export interface WishlistedPokemon {
   id: number
   name: string
   image: string
+  types?: string[]
 }
 
 export function addToWishList(
