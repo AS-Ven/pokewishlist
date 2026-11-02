@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { vi } from 'vitest'
 import { loadPokemonDetails, type PokemonDetail } from './pokemonApi'
-import { addToWishList } from './useWishlist'
+import { addToWishList, readWishlist } from './useWishlist'
 
 describe('addToWishList', () => {
   let storage: Storage
@@ -77,6 +77,39 @@ describe('addToWishList', () => {
     expect(wishlist).toHaveLength(6)
     expect(wishlist.map((item) => item.id)).toEqual([1, 2, 3, 4, 5, 6])
     expect(JSON.parse(storage.getItem('poke-wishlist')!)).toHaveLength(6)
+  })
+})
+
+describe('LocalStorage wishlist persistence', () => {
+  let storage: Storage
+
+  beforeEach(() => {
+    storage = new StorageMock()
+  })
+
+  it('saves and reads a wishlist', () => {
+    const pokemon = { id: 25, name: 'pikachu', image: '/pikachu.png' }
+
+    addToWishList(pokemon, storage)
+
+    expect(readWishlist(storage)).toEqual([pokemon])
+  })
+
+  it('returns an empty wishlist when storage has no data', () => {
+    expect(readWishlist(storage)).toEqual([])
+  })
+
+  it('returns an empty wishlist when stored data is empty', () => {
+    storage.setItem('poke-wishlist', '')
+
+    expect(readWishlist(storage)).toEqual([])
+  })
+
+  it('returns an empty wishlist when stored JSON is invalid', () => {
+    storage.setItem('poke-wishlist', '{invalid-json')
+
+    expect(() => readWishlist(storage)).not.toThrow()
+    expect(readWishlist(storage)).toEqual([])
   })
 })
 
