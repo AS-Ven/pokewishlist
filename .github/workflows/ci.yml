@@ -23,6 +23,9 @@ jobs:
       - name: Test addToWishList
         run: npm test -- --run -t addToWishList
 
+      - name: Check TypeScript types
+        run: npm run typecheck
+
       - name: Check lint rules
         run: npm run lint
 

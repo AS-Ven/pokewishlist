@@ -1,7 +1,3 @@
 {
-  "compilerOptions": {
-    "moduleResolution": "Bundler",
-    "strict": true,
-    "skipLibCheck": true
-  }
+  "extends": "./.nuxt/tsconfig.json"
 }

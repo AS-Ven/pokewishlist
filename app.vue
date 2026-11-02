@@ -106,20 +106,24 @@ try {
 
 const types = computed(() => ['all', ...pokemonTypes])
 
-const filteredPokemon = computed(() =>
-  pokemonList.value.filter((pokemon) => {
-    const matchesName = pokemon.name.includes(
-      searchQuery.value.trim().toLowerCase(),
-    )
-    const matchesFirstType =
-      selectedTypeOne.value === 'all' ||
-      pokemon.types.includes(selectedTypeOne.value)
-    const matchesSecondType =
-      selectedTypeTwo.value === 'all' ||
-      pokemon.types.includes(selectedTypeTwo.value)
+const filteredPokemon = computed<
+  Array<WishlistedPokemon & { types: string[] }>
+>(() =>
+  pokemonList.value.filter(
+    (pokemon: WishlistedPokemon & { types: string[] }) => {
+      const matchesName = pokemon.name.includes(
+        searchQuery.value.trim().toLowerCase(),
+      )
+      const matchesFirstType =
+        selectedTypeOne.value === 'all' ||
+        pokemon.types.includes(selectedTypeOne.value)
+      const matchesSecondType =
+        selectedTypeTwo.value === 'all' ||
+        pokemon.types.includes(selectedTypeTwo.value)
 
-    return matchesName && matchesFirstType && matchesSecondType
-  }),
+      return matchesName && matchesFirstType && matchesSecondType
+    },
+  ),
 )
 
 const hasMorePokemon = computed(() => loadedCount.value < totalPokemon.value)
@@ -128,7 +132,7 @@ let searchRequest = 0
 
 watch(
   [searchQuery, selectedTypeOne, selectedTypeTwo],
-  async ([nameValue, typeOne, typeTwo]) => {
+  async ([nameValue, typeOne, typeTwo]: [string, string, string]) => {
     const query = nameValue.trim().toLowerCase()
     const hasTypeFilter = typeOne !== 'all' || typeTwo !== 'all'
 
@@ -150,7 +154,7 @@ watch(
     error.value = null
 
     try {
-      let matches: ApiResource[]
+      let matches: ApiResource[] = []
 
       if (query) {
         const allPokemon = await $fetch<PokemonListResponse>(
