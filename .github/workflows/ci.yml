@@ -5,8 +5,8 @@ on:
   pull_request:
 
 jobs:
-  ci:
-    name: Test, validate, and build
+  front:
+    name: Front - Nuxt
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,17 +21,45 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run all tests
-        run: npm test -- --run
+      - name: Run frontend tests
+        run: npm run test:front
 
-      - name: Check TypeScript types
-        run: npm run typecheck
+      - name: Check frontend TypeScript types
+        run: npm run typecheck:front
 
-      - name: Check lint rules
-        run: npm run lint
+      - name: Check frontend lint rules
+        run: npm run lint:front
 
-      - name: Check code formatting
-        run: npm run format:check
+      - name: Check frontend formatting
+        run: npm run format:front
 
       - name: Build Nuxt application
         run: npm run build
+
+  back:
+    name: Back - Hono
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 26
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run backend tests
+        run: npm run test:back
+
+      - name: Check backend TypeScript types
+        run: npm run typecheck:back
+
+      - name: Check backend lint rules
+        run: npm run lint:back
+
+      - name: Check backend formatting
+        run: npm run format:back
