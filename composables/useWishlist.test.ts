@@ -23,6 +23,24 @@ describe('addToWishList', () => {
 
     expect(addToWishList(pokemon, storage)).toEqual([pokemon])
   })
+
+  it('does not add more than six Pokemon', () => {
+    const pokemon = (id: number) => ({
+      id,
+      name: `pokemon-${id}`,
+      image: `/pokemon-${id}.png`,
+    })
+
+    for (let id = 1; id <= 6; id++) {
+      addToWishList(pokemon(id), storage)
+    }
+
+    const wishlist = addToWishList(pokemon(7), storage)
+
+    expect(wishlist).toHaveLength(6)
+    expect(wishlist.map((item) => item.id)).toEqual([1, 2, 3, 4, 5, 6])
+    expect(JSON.parse(storage.getItem('poke-wishlist')!)).toHaveLength(6)
+  })
 })
 
 class StorageMock implements Storage {

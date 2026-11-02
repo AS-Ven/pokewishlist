@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'poke-wishlist'
+export const MAX_WISHLIST_SIZE = 6
 
 export interface WishlistedPokemon {
   id: number
@@ -13,7 +14,10 @@ export function addToWishList(
 ): WishlistedPokemon[] {
   const wishlist = readWishlist(storage)
 
-  if (!wishlist.some((item) => item.id === pokemon.id)) {
+  if (
+    !wishlist.some((item) => item.id === pokemon.id) &&
+    wishlist.length < MAX_WISHLIST_SIZE
+  ) {
     wishlist.push(pokemon)
     storage.setItem(STORAGE_KEY, JSON.stringify(wishlist))
   }

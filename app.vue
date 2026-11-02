@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { WishlistedPokemon } from './composables/useWishlist'
+import {
+  MAX_WISHLIST_SIZE,
+  type WishlistedPokemon,
+} from './composables/useWishlist'
 
 interface ApiResource {
   name: string
@@ -261,6 +264,10 @@ const loadMorePokemon = async () => {
 
 const isWishlisted = (pokemonId: number) =>
   wishlist.value.some((pokemon) => pokemon.id === pokemonId)
+
+const isWishlistFull = computed(
+  () => wishlist.value.length >= MAX_WISHLIST_SIZE,
+)
 </script>
 
 <template>
@@ -338,11 +345,15 @@ const isWishlisted = (pokemonId: number) =>
               </div>
               <button
                 type="button"
-                :disabled="isWishlisted(pokemon.id)"
+                :disabled="isWishlisted(pokemon.id) || isWishlistFull"
                 @click="addToWishList(pokemon)"
               >
                 {{
-                  isWishlisted(pokemon.id) ? 'Wishlisted' : 'Add to wishlist'
+                  isWishlisted(pokemon.id)
+                    ? 'Wishlisted'
+                    : isWishlistFull
+                      ? 'Wishlist full'
+                      : 'Add to wishlist'
                 }}
               </button>
             </div>
@@ -383,7 +394,9 @@ const isWishlisted = (pokemonId: number) =>
       aria-labelledby="wishlist-title"
     >
       <div class="sidebar-heading">
-        <h2 id="wishlist-title">My wishlist</h2>
+        <h2 id="wishlist-title">
+          My wishlist ({{ wishlist.length }}/{{ MAX_WISHLIST_SIZE }})
+        </h2>
         <button
           type="button"
           aria-label="Close wishlist"
