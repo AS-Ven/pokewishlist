@@ -42,8 +42,6 @@ app.post('/wishlist', async (context) => {
   }
 
   if (wishlist.some((pokemon) => pokemon.id === body.id)) {
-    console.log("this should break the CI");
-    
     return context.json({ wishlist })
   }
 
