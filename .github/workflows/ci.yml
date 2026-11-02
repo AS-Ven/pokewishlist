@@ -6,6 +6,7 @@ on:
 
 jobs:
   add-to-wishlist:
+    name: Test addToWishList
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,11 +24,82 @@ jobs:
       - name: Test addToWishList
         run: npm test -- --run -t addToWishList
 
+  typecheck:
+    name: Check TypeScript types
+    needs: api-failure-handling
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 26
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Check TypeScript types
         run: npm run typecheck
 
+  api-failure-handling:
+    name: Test API failure handling
+    needs: add-to-wishlist
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 26
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test mocked fetch failure handling
+        run: npm test -- --run -t loadPokemonDetails
+
+  lint:
+    name: Check lint rules
+    needs: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 26
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Check lint rules
         run: npm run lint
+
+  format:
+    name: Check code formatting
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 26
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Check code formatting
         run: npm run format:check

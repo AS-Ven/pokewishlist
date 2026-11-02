@@ -3,24 +3,15 @@ import {
   MAX_WISHLIST_SIZE,
   type WishlistedPokemon,
 } from './composables/useWishlist'
-
-interface ApiResource {
-  name: string
-  url: string
-}
+import {
+  loadPokemonDetails,
+  type ApiResource,
+  type PokemonDetail,
+} from './composables/pokemonApi'
 
 interface PokemonListResponse {
   results: ApiResource[]
   count: number
-}
-
-interface PokemonDetail {
-  id: number
-  name: string
-  sprites: {
-    front_default: string | null
-  }
-  types: Array<{ type: ApiResource }>
 }
 
 interface TypeResponse {
@@ -66,21 +57,7 @@ const pokemonTypes = [
   'steel',
   'fairy',
 ]
-
-const loadPokemonDetails = async (resources: ApiResource[]) => {
-  const details = await Promise.all(
-    resources.map((pokemon) => $fetch<PokemonDetail>(pokemon.url)),
-  )
-
-  return details.map((detail) => ({
-    id: detail.id,
-    name: detail.name,
-    image:
-      detail.sprites.front_default ??
-      `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${detail.id}.png`,
-    types: detail.types.map((entry) => entry.type.name),
-  }))
-}
+const fetchPokemonDetail = (url: string) => $fetch<PokemonDetail>(url)
 
 const loadPokemonPage = async (offset: number) => {
   const page = await $fetch<PokemonListResponse>(
@@ -88,7 +65,7 @@ const loadPokemonPage = async (offset: number) => {
   )
 
   return {
-    pokemon: await loadPokemonDetails(page.results),
+    pokemon: await loadPokemonDetails(page.results, fetchPokemonDetail),
     count: page.count,
   }
 }
@@ -208,7 +185,10 @@ watch(
       searchResources.value = matches
       totalPokemon.value = matches.length
       const firstMatches = matches.slice(0, pageSize)
-      const firstPokemon = await loadPokemonDetails(firstMatches)
+      const firstPokemon = await loadPokemonDetails(
+        firstMatches,
+        fetchPokemonDetail,
+      )
       if (requestId !== searchRequest) {
         return
       }
@@ -244,7 +224,9 @@ const loadMorePokemon = async () => {
         loadedCount.value,
         loadedCount.value + pageSize,
       )
-      pokemonList.value.push(...(await loadPokemonDetails(nextMatches)))
+      pokemonList.value.push(
+        ...(await loadPokemonDetails(nextMatches, fetchPokemonDetail)),
+      )
       loadedCount.value += nextMatches.length
     } else {
       const nextPage = await loadPokemonPage(loadedCount.value)
