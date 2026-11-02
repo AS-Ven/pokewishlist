@@ -9,11 +9,11 @@ export interface WishlistedPokemon {
 
 export function addToWishList(
   pokemon: WishlistedPokemon,
-  storage: Storage = localStorage
+  storage: Storage = localStorage,
 ): WishlistedPokemon[] {
   const wishlist = readWishlist(storage)
 
-  if (!wishlist.some(item => item.id === pokemon.id)) {
+  if (!wishlist.some((item) => item.id === pokemon.id)) {
     wishlist.push(pokemon)
     storage.setItem(STORAGE_KEY, JSON.stringify(wishlist))
   }
@@ -23,14 +23,16 @@ export function addToWishList(
 
 export function removeFromWishList(
   pokemonId: number,
-  storage: Storage = localStorage
+  storage: Storage = localStorage,
 ): WishlistedPokemon[] {
-  const wishlist = readWishlist(storage).filter(item => item.id !== pokemonId)
+  const wishlist = readWishlist(storage).filter((item) => item.id !== pokemonId)
   storage.setItem(STORAGE_KEY, JSON.stringify(wishlist))
   return wishlist
 }
 
-export function readWishlist(storage: Storage = localStorage): WishlistedPokemon[] {
+export function readWishlist(
+  storage: Storage = localStorage,
+): WishlistedPokemon[] {
   const storedWishlist = storage.getItem(STORAGE_KEY)
 
   if (!storedWishlist) {

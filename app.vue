@@ -30,7 +30,9 @@ const searchQuery = ref('')
 const selectedTypeOne = ref('all')
 const selectedTypeTwo = ref('all')
 const pokemonList = ref<Array<WishlistedPokemon & { types: string[] }>>([])
-const globalPokemonList = ref<Array<WishlistedPokemon & { types: string[] }>>([])
+const globalPokemonList = ref<Array<WishlistedPokemon & { types: string[] }>>(
+  [],
+)
 const searchResources = ref<ApiResource[]>([])
 const searching = ref(false)
 const searchMode = ref(false)
@@ -42,33 +44,49 @@ const globalTotalPokemon = ref(0)
 const loadedCount = ref(0)
 const pageSize = 100
 const pokemonTypes = [
-  'normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting',
-  'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost',
-  'dragon', 'dark', 'steel', 'fairy'
+  'normal',
+  'fire',
+  'water',
+  'electric',
+  'grass',
+  'ice',
+  'fighting',
+  'poison',
+  'ground',
+  'flying',
+  'psychic',
+  'bug',
+  'rock',
+  'ghost',
+  'dragon',
+  'dark',
+  'steel',
+  'fairy',
 ]
 
 const loadPokemonDetails = async (resources: ApiResource[]) => {
   const details = await Promise.all(
-    resources.map(pokemon => $fetch<PokemonDetail>(pokemon.url))
+    resources.map((pokemon) => $fetch<PokemonDetail>(pokemon.url)),
   )
 
-  return details.map(detail => ({
+  return details.map((detail) => ({
     id: detail.id,
     name: detail.name,
-    image: detail.sprites.front_default
-      ?? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${detail.id}.png`,
-    types: detail.types.map(entry => entry.type.name)
+    image:
+      detail.sprites.front_default ??
+      `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${detail.id}.png`,
+    types: detail.types.map((entry) => entry.type.name),
   }))
 }
 
 const loadPokemonPage = async (offset: number) => {
   const page = await $fetch<PokemonListResponse>(
-    `https://pokeapi.co/api/v2/pokemon?limit=${pageSize}&offset=${offset}`
+    `https://pokeapi.co/api/v2/pokemon?limit=${pageSize}&offset=${offset}`,
   )
 
   return {
     pokemon: await loadPokemonDetails(page.results),
-    count: page.count
+    count: page.count,
   }
 }
 
@@ -80,113 +98,130 @@ try {
   globalTotalPokemon.value = firstPage.count
   loadedCount.value = firstPage.pokemon.length
 } catch (loadError) {
-  error.value = loadError instanceof Error ? loadError : new Error('Unable to load Pokémon')
+  error.value =
+    loadError instanceof Error ? loadError : new Error('Unable to load Pokémon')
 } finally {
   loading.value = false
 }
 
-const types = computed(() => [
-  'all',
-  ...pokemonTypes
-])
+const types = computed(() => ['all', ...pokemonTypes])
 
 const filteredPokemon = computed(() =>
   pokemonList.value.filter((pokemon) => {
-    const matchesName = pokemon.name.includes(searchQuery.value.trim().toLowerCase())
-    const matchesFirstType = selectedTypeOne.value === 'all'
-      || pokemon.types.includes(selectedTypeOne.value)
-    const matchesSecondType = selectedTypeTwo.value === 'all'
-      || pokemon.types.includes(selectedTypeTwo.value)
+    const matchesName = pokemon.name.includes(
+      searchQuery.value.trim().toLowerCase(),
+    )
+    const matchesFirstType =
+      selectedTypeOne.value === 'all' ||
+      pokemon.types.includes(selectedTypeOne.value)
+    const matchesSecondType =
+      selectedTypeTwo.value === 'all' ||
+      pokemon.types.includes(selectedTypeTwo.value)
 
     return matchesName && matchesFirstType && matchesSecondType
-  })
+  }),
 )
 
 const hasMorePokemon = computed(() => loadedCount.value < totalPokemon.value)
 
 let searchRequest = 0
 
-watch([searchQuery, selectedTypeOne, selectedTypeTwo], async ([nameValue, typeOne, typeTwo]) => {
-  const query = nameValue.trim().toLowerCase()
-  const hasTypeFilter = typeOne !== 'all' || typeTwo !== 'all'
+watch(
+  [searchQuery, selectedTypeOne, selectedTypeTwo],
+  async ([nameValue, typeOne, typeTwo]) => {
+    const query = nameValue.trim().toLowerCase()
+    const hasTypeFilter = typeOne !== 'all' || typeTwo !== 'all'
 
-  if (!query && !hasTypeFilter) {
-    searchRequest++
-    searching.value = false
-    searchMode.value = false
-    pokemonList.value = globalPokemonList.value
-    totalPokemon.value = globalTotalPokemon.value
-    loadedCount.value = globalPokemonList.value.length
-    error.value = null
-    return
-  }
-
-  const requestId = ++searchRequest
-  searchMode.value = true
-  searching.value = true
-  loading.value = true
-  error.value = null
-
-  try {
-    let matches: ApiResource[]
-
-    if (query) {
-      const allPokemon = await $fetch<PokemonListResponse>(
-        'https://pokeapi.co/api/v2/pokemon?limit=10000'
-      )
-      matches = allPokemon.results.filter(pokemon => pokemon.name.includes(query))
-    }
-
-    const typeNames = [typeOne, typeTwo].filter(type => type !== 'all')
-    if (typeNames.length > 0) {
-      const typeResponses = await Promise.all(
-        typeNames.map(type => $fetch<TypeResponse>(`https://pokeapi.co/api/v2/type/${type}`))
-      )
-      const typeMatches = typeResponses.map(response =>
-        new Set(response.pokemon.map(entry => entry.pokemon.url))
-      )
-      if (query) {
-        matches = matches.filter(pokemon =>
-          typeMatches.every(typeMatch => typeMatch.has(pokemon.url))
-        )
-      } else {
-        matches = typeResponses[0].pokemon
-          .filter(entry => typeMatches.every(typeMatch => typeMatch.has(entry.pokemon.url)))
-          .map(entry => entry.pokemon)
-      }
-    } else {
-      const allPokemon = await $fetch<PokemonListResponse>(
-        'https://pokeapi.co/api/v2/pokemon?limit=10000'
-      )
-      matches = allPokemon.results.filter(pokemon => pokemon.name.includes(query))
-    }
-
-    if (requestId !== searchRequest) {
-      return
-    }
-
-    searchResources.value = matches
-    totalPokemon.value = matches.length
-    const firstMatches = matches.slice(0, pageSize)
-    const firstPokemon = await loadPokemonDetails(firstMatches)
-    if (requestId !== searchRequest) {
-      return
-    }
-    pokemonList.value = firstPokemon
-    loadedCount.value = firstMatches.length
-  } catch (loadError) {
-    if (requestId === searchRequest) {
-      error.value = loadError instanceof Error
-        ? loadError
-        : new Error('Unable to search Pokémon')
-    }
-  } finally {
-    if (requestId === searchRequest) {
-      loading.value = false
+    if (!query && !hasTypeFilter) {
+      searchRequest++
       searching.value = false
+      searchMode.value = false
+      pokemonList.value = globalPokemonList.value
+      totalPokemon.value = globalTotalPokemon.value
+      loadedCount.value = globalPokemonList.value.length
+      error.value = null
+      return
     }
-  }
-})
+
+    const requestId = ++searchRequest
+    searchMode.value = true
+    searching.value = true
+    loading.value = true
+    error.value = null
+
+    try {
+      let matches: ApiResource[]
+
+      if (query) {
+        const allPokemon = await $fetch<PokemonListResponse>(
+          'https://pokeapi.co/api/v2/pokemon?limit=10000',
+        )
+        matches = allPokemon.results.filter((pokemon) =>
+          pokemon.name.includes(query),
+        )
+      }
+
+      const typeNames = [typeOne, typeTwo].filter((type) => type !== 'all')
+      if (typeNames.length > 0) {
+        const typeResponses = await Promise.all(
+          typeNames.map((type) =>
+            $fetch<TypeResponse>(`https://pokeapi.co/api/v2/type/${type}`),
+          ),
+        )
+        const typeMatches = typeResponses.map(
+          (response) =>
+            new Set(response.pokemon.map((entry) => entry.pokemon.url)),
+        )
+        if (query) {
+          matches = matches.filter((pokemon) =>
+            typeMatches.every((typeMatch) => typeMatch.has(pokemon.url)),
+          )
+        } else {
+          matches = typeResponses[0].pokemon
+            .filter((entry) =>
+              typeMatches.every((typeMatch) =>
+                typeMatch.has(entry.pokemon.url),
+              ),
+            )
+            .map((entry) => entry.pokemon)
+        }
+      } else {
+        const allPokemon = await $fetch<PokemonListResponse>(
+          'https://pokeapi.co/api/v2/pokemon?limit=10000',
+        )
+        matches = allPokemon.results.filter((pokemon) =>
+          pokemon.name.includes(query),
+        )
+      }
+
+      if (requestId !== searchRequest) {
+        return
+      }
+
+      searchResources.value = matches
+      totalPokemon.value = matches.length
+      const firstMatches = matches.slice(0, pageSize)
+      const firstPokemon = await loadPokemonDetails(firstMatches)
+      if (requestId !== searchRequest) {
+        return
+      }
+      pokemonList.value = firstPokemon
+      loadedCount.value = firstMatches.length
+    } catch (loadError) {
+      if (requestId === searchRequest) {
+        error.value =
+          loadError instanceof Error
+            ? loadError
+            : new Error('Unable to search Pokémon')
+      }
+    } finally {
+      if (requestId === searchRequest) {
+        loading.value = false
+        searching.value = false
+      }
+    }
+  },
+)
 
 const loadMorePokemon = async () => {
   if (loadingMore.value || !hasMorePokemon.value) {
@@ -198,8 +233,11 @@ const loadMorePokemon = async () => {
 
   try {
     if (searchMode.value) {
-      const nextMatches = searchResources.value.slice(loadedCount.value, loadedCount.value + pageSize)
-      pokemonList.value.push(...await loadPokemonDetails(nextMatches))
+      const nextMatches = searchResources.value.slice(
+        loadedCount.value,
+        loadedCount.value + pageSize,
+      )
+      pokemonList.value.push(...(await loadPokemonDetails(nextMatches)))
       loadedCount.value += nextMatches.length
     } else {
       const nextPage = await loadPokemonPage(loadedCount.value)
@@ -208,14 +246,17 @@ const loadMorePokemon = async () => {
       loadedCount.value += nextPage.pokemon.length
     }
   } catch (loadError) {
-    error.value = loadError instanceof Error ? loadError : new Error('Unable to load more Pokémon')
+    error.value =
+      loadError instanceof Error
+        ? loadError
+        : new Error('Unable to load more Pokémon')
   } finally {
     loadingMore.value = false
   }
 }
 
 const isWishlisted = (pokemonId: number) =>
-  wishlist.value.some(pokemon => pokemon.id === pokemonId)
+  wishlist.value.some((pokemon) => pokemon.id === pokemonId)
 </script>
 
 <template>
@@ -233,12 +274,20 @@ const isWishlisted = (pokemonId: number) =>
           <div class="filters">
             <label>
               Search by name
-              <input v-model="searchQuery" type="search" placeholder="e.g. pikachu">
+              <input
+                v-model="searchQuery"
+                type="search"
+                placeholder="e.g. pikachu"
+              />
             </label>
             <label>
               Type 1
               <select v-model="selectedTypeOne">
-                <option v-for="type in types" :key="`first-${type}`" :value="type">
+                <option
+                  v-for="type in types"
+                  :key="`first-${type}`"
+                  :value="type"
+                >
                   {{ type === 'all' ? 'Any type' : type }}
                 </option>
               </select>
@@ -246,7 +295,11 @@ const isWishlisted = (pokemonId: number) =>
             <label>
               Type 2
               <select v-model="selectedTypeTwo">
-                <option v-for="type in types" :key="`second-${type}`" :value="type">
+                <option
+                  v-for="type in types"
+                  :key="`second-${type}`"
+                  :value="type"
+                >
                   {{ type === 'all' ? 'Any type' : type }}
                 </option>
               </select>
@@ -255,15 +308,27 @@ const isWishlisted = (pokemonId: number) =>
         </div>
 
         <p v-if="loading" class="message">Loading the first 100 Pokémon...</p>
-        <p v-else-if="error" class="message error">Unable to load Pokémon from PokeAPI.</p>
+        <p v-else-if="error" class="message error">
+          Unable to load Pokémon from PokeAPI.
+        </p>
         <div v-else class="pokemon-grid">
-          <article v-for="pokemon in filteredPokemon" :key="pokemon.id" class="pokemon-card">
-            <img :src="pokemon.image" :alt="`${pokemon.name} sprite`">
+          <article
+            v-for="pokemon in filteredPokemon"
+            :key="pokemon.id"
+            class="pokemon-card"
+          >
+            <img :src="pokemon.image" :alt="`${pokemon.name} sprite`" />
             <div class="card-content">
-              <p class="pokemon-number">#{{ String(pokemon.id).padStart(4, '0') }}</p>
+              <p class="pokemon-number">
+                #{{ String(pokemon.id).padStart(4, '0') }}
+              </p>
               <h3>{{ pokemon.name }}</h3>
               <div class="type-list" aria-label="Types">
-                <span v-for="type in pokemon.types" :key="type" class="type-badge">
+                <span
+                  v-for="type in pokemon.types"
+                  :key="type"
+                  class="type-badge"
+                >
                   {{ type }}
                 </span>
               </div>
@@ -272,12 +337,17 @@ const isWishlisted = (pokemonId: number) =>
                 :disabled="isWishlisted(pokemon.id)"
                 @click="addToWishList(pokemon)"
               >
-                {{ isWishlisted(pokemon.id) ? 'Wishlisted' : 'Add to wishlist' }}
+                {{
+                  isWishlisted(pokemon.id) ? 'Wishlisted' : 'Add to wishlist'
+                }}
               </button>
             </div>
           </article>
         </div>
-        <p v-if="!loading && !error && filteredPokemon.length === 0" class="message">
+        <p
+          v-if="!loading && !error && filteredPokemon.length === 0"
+          class="message"
+        >
           No Pokémon match these filters.
         </p>
         <button
@@ -310,23 +380,37 @@ const isWishlisted = (pokemonId: number) =>
     >
       <div class="sidebar-heading">
         <h2 id="wishlist-title">My wishlist</h2>
-        <button type="button" aria-label="Close wishlist" @click="wishlistOpen = false">
+        <button
+          type="button"
+          aria-label="Close wishlist"
+          @click="wishlistOpen = false"
+        >
           &times;
         </button>
       </div>
-      <p v-if="wishlist.length === 0" class="message">Your wishlist is empty.</p>
+      <p v-if="wishlist.length === 0" class="message">
+        Your wishlist is empty.
+      </p>
       <ul v-else class="wishlist-list">
         <li v-for="pokemon in wishlist" :key="pokemon.id">
-          <img :src="pokemon.image" :alt="`${pokemon.name} sprite`">
+          <img :src="pokemon.image" :alt="`${pokemon.name} sprite`" />
           <div>
             <strong>{{ pokemon.name }}</strong>
             <div class="type-list">
-              <span v-for="type in pokemon.types ?? []" :key="type" class="type-badge">
+              <span
+                v-for="type in pokemon.types ?? []"
+                :key="type"
+                class="type-badge"
+              >
                 {{ type }}
               </span>
             </div>
           </div>
-          <button type="button" :aria-label="`Remove ${pokemon.name}`" @click="removeFromWishList(pokemon.id)">
+          <button
+            type="button"
+            :aria-label="`Remove ${pokemon.name}`"
+            @click="removeFromWishList(pokemon.id)"
+          >
             &times;
           </button>
         </li>
@@ -350,7 +434,8 @@ body {
   margin: 0;
 }
 
-button, select {
+button,
+select {
   font: inherit;
 }
 
@@ -372,15 +457,19 @@ button {
   margin-bottom: 36px;
 }
 
-.eyebrow, .pokemon-number {
+.eyebrow,
+.pokemon-number {
   color: #667085;
-  font-size: .78rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-h1, h2, h3, p {
+h1,
+h2,
+h3,
+p {
   margin-top: 0;
 }
 
@@ -416,7 +505,7 @@ h1 {
 label {
   color: #667085;
   display: grid;
-  font-size: .85rem;
+  font-size: 0.85rem;
   font-weight: 600;
   gap: 6px;
 }
@@ -451,7 +540,9 @@ input {
   border-radius: 16px;
   box-shadow: 0 6px 18px rgb(16 24 40 / 5%);
   overflow: hidden;
-  transition: transform .2s, box-shadow .2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .pokemon-card:hover {
@@ -472,7 +563,7 @@ input {
 }
 
 .pokemon-number {
-  font-size: .7rem;
+  font-size: 0.7rem;
   margin-bottom: 4px;
 }
 
@@ -492,7 +583,7 @@ input {
   background: #eef2ff;
   border-radius: 999px;
   color: #4654a3;
-  font-size: .72rem;
+  font-size: 0.72rem;
   padding: 4px 8px;
   text-transform: capitalize;
 }
@@ -525,7 +616,7 @@ input {
 
 .load-more:disabled {
   cursor: wait;
-  opacity: .7;
+  opacity: 0.7;
 }
 
 .wishlist-toggle {
@@ -551,7 +642,7 @@ input {
   right: 0;
   top: 0;
   transform: translateX(100%);
-  transition: transform .25s ease;
+  transition: transform 0.25s ease;
   width: min(360px, 90vw);
   z-index: 4;
 }
@@ -571,7 +662,8 @@ input {
   margin-bottom: 0;
 }
 
-.sidebar-heading button, .wishlist-list button {
+.sidebar-heading button,
+.wishlist-list button {
   background: transparent;
   border: 0;
   color: #667085;
@@ -631,7 +723,9 @@ input {
     justify-content: stretch;
   }
 
-  .filters label, .filters input, .filters select {
+  .filters label,
+  .filters input,
+  .filters select {
     width: 100%;
   }
 }

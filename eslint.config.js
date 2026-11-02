@@ -4,7 +4,7 @@ import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
   {
-    ignores: ['.nuxt/**', '.output/**', 'node_modules/**']
+    ignores: ['.nuxt/**', '.output/**', 'node_modules/**'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
@@ -13,23 +13,23 @@ export default tseslint.config(
     files: ['**/*.vue'],
     languageOptions: {
       globals: {
-        '$fetch': 'readonly',
+        $fetch: 'readonly',
         computed: 'readonly',
         ref: 'readonly',
         useWishlist: 'readonly',
-        watch: 'readonly'
+        watch: 'readonly',
       },
       parserOptions: {
         parser: tseslint.parser,
         ecmaVersion: 'latest',
-        sourceType: 'module'
-      }
-    }
+        sourceType: 'module',
+      },
+    },
   },
   {
     rules: {
       'no-console': 'error',
-      'no-debugger': 'error'
-    }
-  }
+      'no-debugger': 'error',
+    },
+  },
 )
