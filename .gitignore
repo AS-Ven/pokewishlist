@@ -5,3 +5,5 @@ coverage
 *.log
 .neon
 .env.local
+cdk.out
+infra/lambda-dist

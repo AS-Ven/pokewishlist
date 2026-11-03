@@ -8,7 +8,11 @@
   "scripts": {
     "postinstall": "nuxt prepare",
     "backend": "tsx backend/server.ts",
+    "backend:lambda": "tsx backend/lambda.ts",
+    "build:lambda": "node scripts/build-lambda.mjs",
     "build": "nuxt build",
+    "build:frontend": "nuxt generate",
+    "deploy:infra": "npm run build:lambda && cdk deploy --app \"npx tsx infra/app.ts\" --require-approval never",
     "dev": "concurrently --kill-others --names backend,nuxt \"npm run backend\" \"nuxt dev\"",
     "format:check": "prettier --check .",
     "format:front": "prettier --check app.vue composables nuxt.config.ts tsconfig.json eslint.config.js",
@@ -31,9 +35,14 @@
     "@hono/node-server": "^1.19.7",
     "@nuxt/test-utils": "^3.19.2",
     "@playwright/test": "^1.57.0",
+    "@types/aws-lambda": "^8.10.164",
     "@types/node": "^22.15.0",
     "@vue/test-utils": "^2.4.6",
+    "aws-cdk": "^2.1147.0",
+    "aws-cdk-lib": "^2.275.0",
     "concurrently": "^10.0.6",
+    "constructs": "^10.8.1",
+    "esbuild": "^0.28.2",
     "eslint": "^9.20.0",
     "eslint-plugin-vue": "^10.0.0",
     "happy-dom": "^17.4.4",
@@ -47,6 +56,7 @@
     "vue-tsc": "^3.3.14"
   },
   "dependencies": {
+    "@hono/aws-lambda": "^1.0.1",
     "@neon/config": "^1.10.0",
     "@neon/env": "^1.6.8",
     "@neondatabase/serverless": "^1.2.0"
