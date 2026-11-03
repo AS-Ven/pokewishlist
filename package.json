@@ -21,7 +21,7 @@
     "lint:front": "eslint app.vue composables nuxt.config.ts eslint.config.js",
     "lint:back": "eslint backend",
     "test": "vitest",
-    "test:coverage": "vitest --run --coverage composables backend",
+    "test:coverage": "vitest --run --coverage composables/useWishlist.test.ts backend/app.test.ts",
     "test:front": "vitest --run composables/useWishlist.test.ts",
     "test:back": "vitest --run backend/app.test.ts",
     "test:db": "vitest --run backend/db.integration.test.ts",
