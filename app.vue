@@ -18,7 +18,12 @@ interface TypeResponse {
   pokemon: Array<{ pokemon: ApiResource }>
 }
 
-const { wishlist, addToWishList, removeFromWishList } = useWishlist()
+const {
+  wishlist,
+  apiError: wishlistApiError,
+  addToWishList,
+  removeFromWishList,
+} = useWishlist()
 const wishlistOpen = ref(false)
 const searchQuery = ref('')
 const selectedTypeOne = ref('all')
@@ -259,6 +264,9 @@ const isWishlistFull = computed(
         <p class="eyebrow">Pokédex collection</p>
         <h1>Poké Wishlist</h1>
         <p>Browse every Pokémon, filter by type, and save your favorites.</p>
+        <p v-if="wishlistApiError" class="message error">
+          {{ wishlistApiError }}
+        </p>
       </header>
 
       <section aria-labelledby="available-pokemon">

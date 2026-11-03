@@ -1,5 +1,11 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import {
+  deleteDatabasePokemon,
+  insertDatabasePokemon,
+  isDatabaseConfigured,
+  readDatabaseWishlist,
+} from './db.js'
 
 export interface WishlistedPokemon {
   id: number
@@ -32,13 +38,31 @@ export const app = new Hono()
 
 app.use('*', cors())
 
-app.get('/wishlist', (context) => context.json({ wishlist }))
+app.get('/wishlist', async (context) => {
+  const currentWishlist = isDatabaseConfigured
+    ? await readDatabaseWishlist()
+    : wishlist
+
+  return context.json({ wishlist: currentWishlist })
+})
 
 app.post('/wishlist', async (context) => {
   const body: unknown = await context.req.json().catch(() => null)
 
   if (!isWishlistedPokemon(body)) {
     return context.json({ error: 'Invalid Pokémon payload' }, 400)
+  }
+
+  if (isDatabaseConfigured) {
+    const result = await insertDatabasePokemon(body)
+    if (result === null) {
+      return context.json({ error: 'Wishlist limit reached' }, 409)
+    }
+
+    return context.json(
+      { wishlist: await readDatabaseWishlist() },
+      result ? 201 : 200,
+    )
   }
 
   if (wishlist.some((pokemon) => pokemon.id === body.id)) {
@@ -53,11 +77,16 @@ app.post('/wishlist', async (context) => {
   return context.json({ wishlist }, 201)
 })
 
-app.delete('/wishlist', (context) => {
+app.delete('/wishlist', async (context) => {
   const id = Number(context.req.query('id'))
 
   if (!Number.isInteger(id)) {
     return context.json({ error: 'A valid Pokémon id is required' }, 400)
+  }
+
+  if (isDatabaseConfigured) {
+    await deleteDatabasePokemon(id)
+    return context.json({ wishlist: await readDatabaseWishlist() })
   }
 
   const index = wishlist.findIndex((pokemon) => pokemon.id === id)
