@@ -24,6 +24,7 @@ const {
   addToWishList,
   removeFromWishList,
 } = useWishlist()
+const { locale, supportedLocales, t } = useTranslations()
 const wishlistOpen = ref(false)
 const searchQuery = ref('')
 const selectedTypeOne = ref('all')
@@ -202,9 +203,7 @@ watch(
     } catch (loadError) {
       if (requestId === searchRequest) {
         error.value =
-          loadError instanceof Error
-            ? loadError
-            : new Error('Unable to search Pokémon')
+          loadError instanceof Error ? loadError : new Error(t('searchError'))
       }
     } finally {
       if (requestId === searchRequest) {
@@ -241,9 +240,7 @@ const loadMorePokemon = async () => {
     }
   } catch (loadError) {
     error.value =
-      loadError instanceof Error
-        ? loadError
-        : new Error('Unable to load more Pokémon')
+      loadError instanceof Error ? loadError : new Error(t('loadMoreError'))
   } finally {
     loadingMore.value = false
   }
@@ -261,12 +258,24 @@ const isWishlistFull = computed(
   <div class="app-shell">
     <main class="content">
       <header class="hero">
-        <p class="eyebrow">Pokédex collection</p>
-        <h1>Poké Wishlist</h1>
-        <p>Browse every Pokémon, filter by type, and save your favorites.</p>
+        <p class="eyebrow">{{ t('eyebrow') }}</p>
+        <h1>{{ t('title') }}</h1>
+        <p>{{ t('description') }}</p>
         <p v-if="wishlistApiError" class="message error">
           {{ wishlistApiError }}
         </p>
+        <label>
+          {{ t('language') }}
+          <select v-model="locale">
+            <option
+              v-for="supportedLocale in supportedLocales"
+              :key="supportedLocale"
+              :value="supportedLocale"
+            >
+              {{ supportedLocale.toUpperCase() }}
+            </option>
+          </select>
+        </label>
       </header>
 
       <section aria-labelledby="available-pokemon">
@@ -274,43 +283,43 @@ const isWishlistFull = computed(
           <h2 id="available-pokemon">All Pokémon</h2>
           <div class="filters">
             <label>
-              Search by name
+              {{ t('searchByName') }}
               <input
                 v-model="searchQuery"
                 type="search"
-                placeholder="e.g. pikachu"
+                :placeholder="t('searchPlaceholder')"
               />
             </label>
             <label>
-              Type 1
+              {{ t('typeOne') }}
               <select v-model="selectedTypeOne">
                 <option
                   v-for="type in types"
                   :key="`first-${type}`"
                   :value="type"
                 >
-                  {{ type === 'all' ? 'Any type' : type }}
+                  {{ type === 'all' ? t('anyType') : type }}
                 </option>
               </select>
             </label>
             <label>
-              Type 2
+              {{ t('typeTwo') }}
               <select v-model="selectedTypeTwo">
                 <option
                   v-for="type in types"
                   :key="`second-${type}`"
                   :value="type"
                 >
-                  {{ type === 'all' ? 'Any type' : type }}
+                  {{ type === 'all' ? t('anyType') : type }}
                 </option>
               </select>
             </label>
           </div>
         </div>
 
-        <p v-if="loading" class="message">Loading the first 100 Pokémon...</p>
+        <p v-if="loading" class="message">{{ t('loadingPokemon') }}</p>
         <p v-else-if="error" class="message error">
-          Unable to load Pokémon from PokeAPI.
+          {{ t('loadError') }}
         </p>
         <div v-else class="pokemon-grid">
           <article
@@ -340,10 +349,10 @@ const isWishlistFull = computed(
               >
                 {{
                   isWishlisted(pokemon.id)
-                    ? 'Wishlisted'
+                    ? t('wishlisted')
                     : isWishlistFull
-                      ? 'Wishlist full'
-                      : 'Add to wishlist'
+                      ? t('wishlistFull')
+                      : t('addToWishlist')
                 }}
               </button>
             </div>
@@ -353,7 +362,7 @@ const isWishlistFull = computed(
           v-if="!loading && !error && filteredPokemon.length === 0"
           class="message"
         >
-          No Pokémon match these filters.
+          {{ t('noMatches') }}
         </p>
         <button
           v-if="!loading && hasMorePokemon"
@@ -362,7 +371,7 @@ const isWishlistFull = computed(
           :disabled="loadingMore"
           @click="loadMorePokemon"
         >
-          {{ loadingMore ? 'Loading...' : 'Load 100 more Pokémon' }}
+          {{ loadingMore ? t('loading') : t('loadMore') }}
         </button>
       </section>
     </main>
@@ -374,7 +383,7 @@ const isWishlistFull = computed(
       aria-controls="wishlist-sidebar"
       @click="wishlistOpen = !wishlistOpen"
     >
-      Wishlist ({{ wishlist.length }})
+      {{ t('wishlist') }} ({{ wishlist.length }})
     </button>
 
     <aside
@@ -385,18 +394,18 @@ const isWishlistFull = computed(
     >
       <div class="sidebar-heading">
         <h2 id="wishlist-title">
-          My wishlist ({{ wishlist.length }}/{{ MAX_WISHLIST_SIZE }})
+          {{ t('myWishlist') }} ({{ wishlist.length }}/{{ MAX_WISHLIST_SIZE }})
         </h2>
         <button
           type="button"
-          aria-label="Close wishlist"
+          :aria-label="t('closeWishlist')"
           @click="wishlistOpen = false"
         >
           &times;
         </button>
       </div>
       <p v-if="wishlist.length === 0" class="message">
-        Your wishlist is empty.
+        {{ t('wishlistEmpty') }}
       </p>
       <ul v-else class="wishlist-list">
         <li v-for="pokemon in wishlist" :key="pokemon.id">

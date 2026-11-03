@@ -6,6 +6,7 @@ import {
   isDatabaseConfigured,
   readDatabaseWishlist,
 } from './db.js'
+import { translateBackend } from './translations.js'
 
 export interface WishlistedPokemon {
   id: number
@@ -50,13 +51,29 @@ app.post('/wishlist', async (context) => {
   const body: unknown = await context.req.json().catch(() => null)
 
   if (!isWishlistedPokemon(body)) {
-    return context.json({ error: 'Invalid Pokémon payload' }, 400)
+    return context.json(
+      {
+        error: translateBackend(
+          'invalidPokemonPayload',
+          context.req.header('Accept-Language'),
+        ),
+      },
+      400,
+    )
   }
 
   if (isDatabaseConfigured) {
     const result = await insertDatabasePokemon(body)
     if (result === null) {
-      return context.json({ error: 'Wishlist limit reached' }, 409)
+      return context.json(
+        {
+          error: translateBackend(
+            'wishlistLimitReached',
+            context.req.header('Accept-Language'),
+          ),
+        },
+        409,
+      )
     }
 
     return context.json(
@@ -70,7 +87,15 @@ app.post('/wishlist', async (context) => {
   }
 
   if (wishlist.length >= MAX_WISHLIST_SIZE) {
-    return context.json({ error: 'Wishlist limit reached' }, 409)
+    return context.json(
+      {
+        error: translateBackend(
+          'wishlistLimitReached',
+          context.req.header('Accept-Language'),
+        ),
+      },
+      409,
+    )
   }
 
   wishlist.push(body)
@@ -81,7 +106,15 @@ app.delete('/wishlist', async (context) => {
   const id = Number(context.req.query('id'))
 
   if (!Number.isInteger(id)) {
-    return context.json({ error: 'A valid Pokémon id is required' }, 400)
+    return context.json(
+      {
+        error: translateBackend(
+          'validPokemonIdRequired',
+          context.req.header('Accept-Language'),
+        ),
+      },
+      400,
+    )
   }
 
   if (isDatabaseConfigured) {

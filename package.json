@@ -20,6 +20,7 @@
     "test:front": "vitest --run composables/useWishlist.test.ts",
     "test:back": "vitest --run backend/app.test.ts",
     "test:db": "vitest --run backend/db.integration.test.ts",
+    "test:i18n": "node scripts/check-translation-keys.mjs",
     "test:e2e": "playwright test",
     "typecheck": "nuxt typecheck && tsc -p tsconfig.backend.json",
     "typecheck:front": "nuxt typecheck",

@@ -10,7 +10,6 @@ if (existsSync('.env.local')) {
 }
 
 const databaseUrl = process.env.DATABASE_URL
-const testTable = 'wishlist_db_test'
 
 describe('Neon database connection', () => {
   const sql = databaseUrl ? neon(databaseUrl) : null

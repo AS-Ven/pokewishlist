@@ -1,0 +1,5 @@
+{
+  "invalidPokemonPayload": "Données Pokémon invalides",
+  "wishlistLimitReached": "La liste de souhaits est pleine",
+  "validPokemonIdRequired": "Un identifiant Pokémon valide est requis"
+}

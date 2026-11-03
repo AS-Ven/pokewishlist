@@ -3,6 +3,7 @@ import type { PokemonDetail } from '../../composables/pokemonApi'
 
 const route = useRoute()
 const pokemonName = String(route.params.name)
+const { t } = useTranslations()
 
 const { data: pokemon, error: pokemonError } = await useAsyncData(
   `pokemon-${pokemonName}`,
@@ -33,7 +34,7 @@ if (pokemonError.value || !pokemon.value) {
 
 <template>
   <main v-if="pokemon" class="pokemon-page">
-    <NuxtLink class="home-link" to="/">Return home</NuxtLink>
+    <NuxtLink class="home-link" to="/">{{ t('returnHome') }}</NuxtLink>
     <article class="pokemon-card">
       <img :src="pokemon.image" :alt="`${pokemon.name} sprite`" />
       <div class="card-content">
@@ -49,9 +50,9 @@ if (pokemonError.value || !pokemon.value) {
   </main>
   <main v-else class="error-page">
     <p class="error-code">404</p>
-    <h1>Pokémon not found</h1>
-    <p>We could not find “{{ pokemonName }}”.</p>
-    <NuxtLink class="home-link" to="/">Return home</NuxtLink>
+    <h1>{{ t('pokemonNotFound') }}</h1>
+    <p>{{ t('pokemonNotFoundDescription', { name: pokemonName }) }}</p>
+    <NuxtLink class="home-link" to="/">{{ t('returnHome') }}</NuxtLink>
   </main>
 </template>
 

@@ -12,6 +12,7 @@ export function useWishlist() {
   const apiError = useState<string | null>('wishlist-api-error', () => null)
   const config = useRuntimeConfig()
   const apiBase = config.public.apiBase as string
+  const { t } = useTranslations()
 
   const add = async (pokemon: WishlistedPokemon) => {
     try {
@@ -25,7 +26,7 @@ export function useWishlist() {
       wishlist.value = response.wishlist
       apiError.value = null
     } catch {
-      apiError.value = 'Unable to save the wishlist. Please try again.'
+      apiError.value = t('wishlistSaveError')
     }
   }
 
@@ -41,7 +42,7 @@ export function useWishlist() {
       wishlist.value = response.wishlist
       apiError.value = null
     } catch {
-      apiError.value = 'Unable to update the wishlist. Please try again.'
+      apiError.value = t('wishlistUpdateError')
     }
   }
 
@@ -53,7 +54,7 @@ export function useWishlist() {
       wishlist.value = response.wishlist
       apiError.value = null
     } catch {
-      apiError.value = 'Unable to load the wishlist. Please try again.'
+      apiError.value = t('wishlistLoadError')
     }
   })
 

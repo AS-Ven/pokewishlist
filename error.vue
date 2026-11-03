@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { t } = useTranslations()
+
 defineProps<{
   error: {
     statusCode?: number
@@ -10,9 +12,9 @@ defineProps<{
 <template>
   <main class="error-page">
     <p class="error-code">{{ error.statusCode ?? 500 }}</p>
-    <h1>{{ error.statusMessage ?? 'Something went wrong' }}</h1>
-    <p>We could not find this Pokémon.</p>
-    <NuxtLink class="home-link" to="/">Return home</NuxtLink>
+    <h1>{{ error.statusMessage ?? t('somethingWentWrong') }}</h1>
+    <p>{{ t('pokemonNotFound') }}</p>
+    <NuxtLink class="home-link" to="/">{{ t('returnHome') }}</NuxtLink>
   </main>
 </template>
 

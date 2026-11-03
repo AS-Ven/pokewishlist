@@ -41,6 +41,18 @@ describe('wishlist API', () => {
     })
     expect(invalidResponse.status).toBe(400)
 
+    const frenchInvalidResponse = await app.request('/wishlist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept-Language': 'fr',
+      },
+      body: JSON.stringify({ id: 'not-a-number' }),
+    })
+    expect((await frenchInvalidResponse.json()).error).toBe(
+      'Données Pokémon invalides',
+    )
+
     for (let id = 1; id <= 6; id++) {
       await app.request('/wishlist', {
         method: 'POST',

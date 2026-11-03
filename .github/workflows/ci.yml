@@ -24,6 +24,9 @@ jobs:
       - name: Run frontend tests
         run: npm run test:front
 
+      - name: Check translation keys
+        run: npm run test:i18n
+
       - name: Check frontend TypeScript types
         run: npm run typecheck:front
 
@@ -54,6 +57,9 @@ jobs:
 
       - name: Run backend tests
         run: npm run test:back
+
+      - name: Check translation keys
+        run: npm run test:i18n
 
       - name: Check backend TypeScript types
         run: npm run typecheck:back
