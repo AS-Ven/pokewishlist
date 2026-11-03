@@ -19,6 +19,7 @@
     "test": "vitest",
     "test:front": "vitest --run composables/useWishlist.test.ts",
     "test:back": "vitest --run backend/app.test.ts",
+    "test:e2e": "playwright test",
     "typecheck": "nuxt typecheck && tsc -p tsconfig.backend.json",
     "typecheck:front": "nuxt typecheck",
     "typecheck:back": "tsc -p tsconfig.backend.json"
@@ -34,6 +35,7 @@
     "happy-dom": "^17.4.4",
     "hono": "^4.10.4",
     "nuxt": "^3.17.5",
+    "@playwright/test": "^1.57.0",
     "prettier": "^3.5.3",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.24.0",
