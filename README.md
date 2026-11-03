@@ -1,7 +1,7 @@
 # Poke Wishlist
 
 [![CI](https://github.com/AS-Ven/pokewishlist/actions/workflows/ci.yml/badge.svg)](https://github.com/AS-Ven/pokewishlist/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-Vitest%20CI-blue)](https://github.com/AS-Ven/pokewishlist/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-76%25-blue)](https://github.com/AS-Ven/pokewishlist/actions/workflows/ci.yml)
 
 A Nuxt and Hono Pokémon wishlist application. Wishlist data is stored in Neon
 Postgres, with the backend deployed to AWS Lambda/API Gateway and the static

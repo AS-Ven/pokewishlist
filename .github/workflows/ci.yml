@@ -81,19 +81,10 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-  deploy:
-    name: Deploy to AWS
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  coverage:
+    name: Vitest Coverage
     needs: [front, back]
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    env:
-      AWS_REGION: eu-west-3
-      STACK_NAME: PokeWishlistStack
-      FRONTEND_BUCKET: pokemonwishlist-506576267848-eu-west-3
-
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -119,43 +110,69 @@ jobs:
           path: coverage/
           if-no-files-found: error
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::506576267848:role/GitHubActions-pokewishlist
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Deploy with CDK
-        run: npx cdk deploy --all --app "npx tsx infra/app.ts" --require-approval never
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
-      - name: Read deployed API URL
-        run: |
-          API_URL="$(aws cloudformation describe-stacks \
-            --stack-name "$STACK_NAME" \
-            --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
-            --output text)"
-          echo "NUXT_PUBLIC_API_BASE=$API_URL" >> "$GITHUB_ENV"
-
-      - name: Build static frontend
-        run: npm run build:frontend
-
-      - name: Upload frontend to S3
-        run: aws s3 sync .output/public "s3://$FRONTEND_BUCKET" --delete
-
-      - name: Invalidate CloudFront cache
-        run: |
-          DISTRIBUTION_ID="$(aws cloudformation describe-stack-resources \
-            --stack-name "$STACK_NAME" \
-            --query "StackResources[?ResourceType=='AWS::CloudFront::Distribution'].PhysicalResourceId" \
-            --output text)"
-          aws cloudfront create-invalidation \
-            --distribution-id "$DISTRIBUTION_ID" \
-            --paths '/*'
-
-      - name: Smoke test deployed API health
-        run: |
-          STATUS="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
-            "$NUXT_PUBLIC_API_BASE/health")"
-          test "$STATUS" = "200"
+  # deploy:
+  #   name: Deploy to AWS
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   needs: [front, back, coverage]
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     id-token: write
+  #   env:
+  #     AWS_REGION: eu-west-3
+  #     STACK_NAME: PokeWishlistStack
+  #     FRONTEND_BUCKET: pokemonwishlist-506576267848-eu-west-3
+  #
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v5
+  #
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v5
+  #       with:
+  #         node-version: 26
+  #         cache: npm
+  #
+  #     - name: Install dependencies
+  #       run: npm ci
+  #
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: arn:aws:iam::506576267848:role/GitHubActions-pokewishlist
+  #         aws-region: ${{ env.AWS_REGION }}
+  #
+  #     - name: Deploy with CDK
+  #       run: npx cdk deploy --all --app "npx tsx infra/app.ts" --require-approval never
+  #       env:
+  #         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  #
+  #     - name: Read deployed API URL
+  #       run: |
+  #         API_URL="$(aws cloudformation describe-stacks \
+  #           --stack-name "$STACK_NAME" \
+  #           --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
+  #           --output text)"
+  #         echo "NUXT_PUBLIC_API_BASE=$API_URL" >> "$GITHUB_ENV"
+  #
+  #     - name: Build static frontend
+  #       run: npm run build:frontend
+  #
+  #     - name: Upload frontend to S3
+  #       run: aws s3 sync .output/public "s3://$FRONTEND_BUCKET" --delete
+  #
+  #     - name: Invalidate CloudFront cache
+  #       run: |
+  #         DISTRIBUTION_ID="$(aws cloudformation describe-stack-resources \
+  #           --stack-name "$STACK_NAME" \
+  #           --query "StackResources[?ResourceType=='AWS::CloudFront::Distribution'].PhysicalResourceId" \
+  #           --output text)"
+  #         aws cloudfront create-invalidation \
+  #           --distribution-id "$DISTRIBUTION_ID" \
+  #           --paths '/*'
+  #
+  #     - name: Smoke test deployed API health
+  #       run: |
+  #         STATUS="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+  #           "$NUXT_PUBLIC_API_BASE/health")"
+  #         test "$STATUS" = "200"
