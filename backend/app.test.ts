@@ -13,6 +13,13 @@ describe('wishlist API', () => {
     wishlist.length = 0
   })
 
+  it('reports a healthy API', async () => {
+    const response = await app.request('/health')
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ status: 'ok' })
+  })
+
   it('gets, creates, and deletes wishlist entries', async () => {
     const createResponse = await app.request('/wishlist', {
       method: 'POST',

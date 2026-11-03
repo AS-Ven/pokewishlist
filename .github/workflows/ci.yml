@@ -141,3 +141,9 @@ jobs:
           aws cloudfront create-invalidation \
             --distribution-id "$DISTRIBUTION_ID" \
             --paths '/*'
+
+      - name: Smoke test deployed API health
+        run: |
+          STATUS="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+            "$NUXT_PUBLIC_API_BASE/health")"
+          test "$STATUS" = "200"

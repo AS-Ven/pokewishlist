@@ -39,6 +39,10 @@ export const app = new Hono()
 
 app.use('*', cors())
 
+app.get('/health', (context) => {
+  return context.json({ status: 'ok' })
+})
+
 app.get('/wishlist', async (context) => {
   const currentWishlist = isDatabaseConfigured
     ? await readDatabaseWishlist()
